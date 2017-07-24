@@ -1,0 +1,88 @@
+%%%% TD1:TDIntroductionauData-Mining
+%%%% Objectif: revision pour mon rattrapage DM
+%% prise en main des données:
+
+data = load('WhiteW.mat');% struct X ,Y
+
+X = data.X;
+Y = data.Y;
+%etude statistique des données:
+moy = mean(X);
+var = var(X);
+ecart = std(X);
+figure(1),
+boxplot(X);%On remarque que les données ne sont pas normalisés
+title('Boite a moustache des données X')
+%Remarque tirée depuis la boite a moustaches:
+%Données incoherentes, echel variable entre les different
+%attributs(notamaent 4,6 et 7)
+
+%% Mise en place de la classification
+%Separation des données: en60% données d'apprentissage ,20% val et 20% de test et données test
+[xa, ya, xt, yt] = splitdata(X, Y, 4/5);
+[xa, ya, xv, yv] = splitdata(xa, ya,3/4);
+
+%% Kppv: !!!!!!!!!! sans Normalisation!!!!!!!!!!!
+vectk =[1:2:10];
+for k = vectk(1):length(vectk)
+    
+    
+    [ypa,MatDist]=kppv(xa, xa, ya, k, []);
+    [ypv,MatDist]=kppv(xv, xa, ya, k, []);
+    
+     erra(k) = mean(ypa~=ya);
+     errv(k) = mean(ypv~=yv);
+    
+end
+
+%% Affichage:
+figure(2),
+hold on ;
+plot(vectk,erra,'--g');
+plot(vectk,errv,'--r');
+hold off;
+title('erreur des fonctions en fonctioncs des nombres de voisins');
+%% K optimal 
+[errvmin,kopt] = min(errv); % K optimile est de 5 voisins
+
+% erreur sur donnée Test
+[ypt,MatDist]=kppv(xt, xa, ya, kopt, []);
+errtest = mean(ypt~=yt)*100 % 27% d'erreur !!!
+
+%% Inflluence de la normalisation: -->Centrer et reduir les variables
+meanx = mean(xa);stdx= std(xa);
+[xapp,xval,meanxapp,stdxapp] = normalizemeanstd(xa,xv,meanx,stdx);
+[xapp,xtest,meanxapp,stdxapp] = normalizemeanstd(xa,xt,meanx,stdx);
+
+
+%%
+
+vectk =[1:2:20];
+for k = vectk(1):length(vectk)
+    
+    
+    [ypa,MatDist]=kppv(xapp, xapp, ya, k, []);
+    [ypv,MatDist]=kppv(xval, xapp, ya, k, []);
+    
+     erra(k) = mean(ypa~=ya);
+     errv(k) = mean(ypv~=yv);
+    
+end
+
+%% Affichage:
+figure(3),
+hold on ;
+plot(vectk,erra,'--g');
+plot(vectk,errv,'--r');
+
+title('erreur des fonctions en fonctioncs des nombres de voisins');
+hold off;
+%% K optimal 
+[errvmin,kopt] = min(errv); % K optimile est de 5 voisins
+
+% erreur sur donnée Test
+[ypt,MatDist]=kppv(xtest, xapp, ya, kopt, []);
+errtest = mean(ypt~=yt)*100 % 27% d'erreur !!!
+
+
+
